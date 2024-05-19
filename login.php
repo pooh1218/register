@@ -1,75 +1,84 @@
+<?php
+
+require_once "config.php";
+require_once "session.php";
+
+
+$error = '';
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
+
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
+
+    // validate if email is empty
+    if (empty($email)) {
+        $error .= '<p class="error">Please enter email.</p>';
+    }
+
+    // validate if password is empty
+    if (empty($password)) {
+        $error .= '<p class="error">Please enter your password.</p>';
+    }
+
+    if (empty($error)) {
+        if ($query = $db->prepare("SELECT * FROM users WHERE email = ?")) {
+            $query->bind_param('s', $email);
+            $query->execute();
+            $row = $query->fetch();
+            if ($row) {
+                if (password_verify($password, $row['password'])) {
+                    $_SESSION["userid"] = $row['id'];
+                    $_SESSION["user"] = $row;
+
+                    // Redirect the user to welcome page
+                    header("location: welcome.php");
+                    exit;
+                } else {
+                    $error .= '<p class="error">The password is not valid.</p>';
+                }
+            } else {
+                $error .= '<p class="error">No User exist with that email address.</p>';
+            }
+        }
+        $query->close();
+    }
+    // Close connection
+    mysqli_close($db);
+}
+?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Bootstrap Example</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        .gradient-custom-3 {
-            /* fallback for old browsers */
-            background: #84fab0;
-
-            /* Chrome 10-25, Safari 5.1-6 */
-            background: -webkit-linear-gradient(to right, rgba(132, 250, 176, 0.5), rgba(143, 211, 244, 0.5));
-
-            /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-            background: linear-gradient(to right, rgba(132, 250, 176, 0.5), rgba(143, 211, 244, 0.5))
-        }
-
-        .gradient-custom-4 {
-            /* fallback for old browsers */
-            background: #84fab0;
-
-            /* Chrome 10-25, Safari 5.1-6 */
-            background: -webkit-linear-gradient(to right, rgba(132, 250, 176, 1), rgba(143, 211, 244, 1));
-
-            /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-            background: linear-gradient(to right, rgba(132, 250, 176, 1), rgba(143, 211, 244, 1))
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 </head>
 
 <body>
-    <section class="vh-100 bg-image"
-        style="background-image: url('https://mdbcdn.b-cdn.net/img/Photos/new-templates/search-box/img4.webp');">
-        <div class="mask d-flex align-items-center h-100 gradient-custom-3">
-            <div class="container h-100">
-                <div class="row d-flex justify-content-center align-items-center h-100">
-                    <div class="col-12 col-md-9 col-lg-7 col-xl-6">
-                        <div class="card" style="border-radius: 15px;">
-                            <div class="card-body p-5">
-                                <h2 class="text-uppercase text-center mb-5">Sign in</h2>
-                                <form action="list.php" method="POST">
-
-                                    <div data-mdb-input-init class="form-outline mb-4">
-                                        <label class="form-label" for="form3Example3cg" >Your Email</label>
-                                        <input type="email" id="form3Example3cg" name="email" class="form-control form-control-lg" />
-                                    </div>
-
-                                    <div data-mdb-input-init class="form-outline mb-4">
-                                        <label class="form-label" for="form3Example4cg" >Password</label>
-                                        <input type="password" id="form3Example4cg" name="psw"
-                                            class="form-control form-control-lg" />
-                                    </div>
-
-                                    <div class="d-flex justify-content-center">
-                                        <button type="submit" data-mdb-button-init data-mdb-ripple-init
-                                            class="btn btn-success btn-block btn-lg gradient-custom-4 text-body">Login</button>
-                                    </div>
-
-                                    <p class="text-center text-muted mt-5 mb-0">Don't you have an account? <a href="./"
-                                            class="fw-bold text-body"><u>Register here</u></a></p>
-                                </form>
-                            </div>
-                        </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Login</h2>
+                <p>Please fill in your email and password.</p>
+                <form action="" method="post">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" class="form-control" required />
                     </div>
-                </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" name="submit" class="btn btn-primary" value="Submit">
+                    </div>
+                    <p>Don't have an account? <a href="register.php">Register here</a>.</p>
+                </form>
             </div>
         </div>
-    </section>
+    </div>
 </body>
 
 </html>
